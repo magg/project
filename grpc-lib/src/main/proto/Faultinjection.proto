@@ -1,0 +1,178 @@
+syntax = "proto3";
+
+option java_package = "com.inria.spirals.mgonzale.grpc.lib";
+//option java_multiple_files = true;
+option java_outer_classname = "Faultinjection";
+option objc_class_prefix = "FI";
+
+enum Direction {
+    INPUT = 0;
+    OUTPUT = 1;
+    ALL = 2;
+}
+
+enum InjectionType {
+      UNKNOWN = 0;
+      BURNCPU = 1;
+      SIGSTOP  = 2;
+      BURNIO= 3;
+      FILLDISK = 4;
+      FILLMEM  = 5;
+      FLOOD= 6;
+      CORRUPTHDFS = 7;
+      SUICIDE = 8;
+      BLACK= 9;
+      DNSFAIL = 10;
+      HANG= 11;
+      RONLY= 12;
+      UNMOUNT = 13;
+      PANIC = 14;
+      DROP= 15;
+      REJECT1 = 16;
+      REJECT2 = 17;
+      LOSS= 18;
+      CORRUPT = 19;
+      REORDER = 20;
+      DUPLICATE = 21;
+      DELAY = 22;
+      LIMIT = 23;
+      DDELAY = 24;
+      DCORRUPT = 25;
+      DFAIL= 26;
+ }
+
+enum InjectionAction {
+	START = 0;
+	STOP = 1;
+	START_WAIT_STOP = 2;
+
+}
+
+message Injection {
+	string id = 1;
+	InjectionType name = 2;
+	InjectionAction action = 3;
+	int64 amount = 4;
+	int32 pid = 5;
+	string mount = 6;
+	int64 size = 7;
+	int64 offset = 8;
+	string path = 9;
+	string access = 10;
+	int64 dealy = 11;
+	int32 probability = 12;
+	int32 percentage = 14;
+	int32 errorCode = 16;
+	string ip = 17;
+	repeated SocketAddress sockets = 18;
+	Direction direction = 19;
+	repeated AddressBlock blocks = 20;
+}
+
+message TriggerRequest {
+  Injection injection = 1;
+}
+message TriggerResponse {
+  string token = 1;
+}
+
+message EndPointRequest {
+	string address = 1;
+	int32 port = 2;
+	string kind = 3;
+}
+
+message EndPointResponse {
+	bool accepted = 1;
+}
+
+message SocketAddress {
+	string hostAddress =1;
+	int32 port = 2;
+}
+message AddressBlock {
+	Direction direction =1;
+	SocketAddress address =2;
+}
+
+
+message CommandTuple {
+	int32 exitCode =1;
+	string output =2;
+	string error = 3;
+}
+
+
+message StringMessage {
+	string text =1 ;
+}
+
+
+message QueryMessage {
+	string query =1;
+}
+
+message IntMessage{
+	int32 int =1;
+}
+
+message PidsMessage {
+	 repeated int32 pid =1;
+}
+
+message PortsMessage {
+	repeated int32 ports = 1;
+}
+
+message TriggerStatus {
+	Injection injection = 1;
+	bool executed = 2;
+	bool success = 3;
+	bool cancelled = 4;
+	string info =5;
+}
+
+message ListTriggerRequest {
+}
+
+message ListTriggerResponse {
+	map<string, TriggerStatus> triggers = 1;
+}
+
+message CancelRequest {
+	string token = 1;
+}
+
+message CancelResponse {
+	bool done = 1;
+}
+
+message VoidMessage {
+}
+
+service AgenTest {
+
+  rpc trigger( TriggerRequest) returns ( TriggerResponse);
+
+  rpc cancel( CancelRequest) returns ( CancelResponse);
+
+  rpc register( EndPointRequest) returns ( EndPointResponse);
+
+  rpc execCommand( StringMessage ) returns ( CommandTuple );
+
+  rpc queryPids( QueryMessage ) returns ( PidsMessage );
+
+  rpc getPid( QueryMessage ) returns ( IntMessage );
+
+  rpc listTriggers (ListTriggerRequest ) returns ( ListTriggerResponse);
+
+  rpc cleanup (VoidMessage) returns ( VoidMessage);
+
+  rpc shutdown (VoidMessage) returns ( stream VoidMessage);
+
+  rpc getIPAddress (VoidMessage) returns ( StringMessage);
+
+  rpc listPorts( IntMessage ) returns ( PortsMessage );
+
+
+}
