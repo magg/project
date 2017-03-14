@@ -1,0 +1,7 @@
+rootProject.name = 'grpc-spring-boot-test'
+
+
+include "grpc-lib"
+include "grpc-server"
+include "grpc-client"
+include "eureka-server"
