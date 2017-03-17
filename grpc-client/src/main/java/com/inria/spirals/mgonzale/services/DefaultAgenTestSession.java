@@ -4,34 +4,29 @@ import java.net.InetSocketAddress;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.*;
 
+
+@Service
 public class DefaultAgenTestSession implements AgenTestSession
 {
     private static final Logger LOG;
     private static ConcurrentMap<InetSocketAddress, GrpcClientService> sessions;
-    private final int port;
     
     @Autowired
     private DiscoveryService discover;
     
     
-    
+    @EventListener(ContextRefreshedEvent.class)
     public void findServers(){
+    	System.out.println("test-22222");
     	for(ServiceInstance instance : discover.getListofServers()){
-    		GrpcClientService client = new GrpcClientService(instance.getHost(), instance.getPort());
+    		GrpcClientService client = get(instance.getHost(), 3000);
     	}
-    	
-    }
-    
-    
-    private int getClientPort() {
-        return this.port;
-    }
-    
-    public DefaultAgenTestSession(final int port) {
-        this.port = port;
     }
     
     @Override
@@ -48,11 +43,6 @@ public class DefaultAgenTestSession implements AgenTestSession
     @Override
     public GrpcClientService get(String host, int port) {
         return this.get(new InetSocketAddress(host, port));
-    }
-    
-    @Override
-    public GrpcClientService get(final String host) {
-        return this.get(new InetSocketAddress(host, this.getClientPort()));
     }
     
     @Override
@@ -80,10 +70,6 @@ public class DefaultAgenTestSession implements AgenTestSession
         this.terminate(new InetSocketAddress(host, port));
     }
     
-    @Override
-    public void terminate(final String host) {
-        this.terminate(host, this.getClientPort());
-    }
     
     static {
         LOG = LoggerFactory.getLogger(DefaultAgenTestSession.class);

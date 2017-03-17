@@ -5,9 +5,12 @@ import com.inria.spirals.mgonzale.support.*;
 import com.inria.spirals.mgonzale.model.*;
 import com.inria.spirals.mgonzale.model.injections.*;
 import com.inria.spirals.mgonzale.grpc.lib.*;
+
+import java.io.IOException;
 import java.nio.file.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 
 public class Disk implements Injectable
 {
@@ -19,6 +22,21 @@ public class Disk implements Injectable
     private static final Logger LOG;
     private static final int MAX_RETRY = 1;
     private static final String HCDIFILE = "";
+    
+    
+    public String getFilePath(){
+    	String path = null;
+		try {
+
+		path =  new ClassPathResource("scripts/inject.sh").getFile().getAbsolutePath();
+			
+		} catch (IOException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return path;
+    	
+    }
     
     @Override
     public boolean onStart(final Injection injection) {
@@ -83,7 +101,7 @@ public class Disk implements Injectable
     private boolean burn(final BurnIO injection) {
         try {
             Disk.LOG.info("Starting BurnDISK injection {}", injection);
-            return Util.runScriptPrintRetry(1, "scripts/inject.sh", "-i", Long.toString(injection.getAmount()), injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-i", Long.toString(injection.getAmount()), injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -94,7 +112,7 @@ public class Disk implements Injectable
     private boolean unburn(final BurnIO injection) {
         try {
             Disk.LOG.info("Stopping BurnDISK injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "--cleanio", injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleanio", injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -105,7 +123,7 @@ public class Disk implements Injectable
     private boolean fill(final FillDisk injection) {
         try {
             Disk.LOG.info("Starting FILLDISK injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-f", injection.getAmount(), injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-f", injection.getAmount(), injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -116,7 +134,7 @@ public class Disk implements Injectable
     private boolean unfill(final FillDisk injection) {
         try {
             Disk.LOG.info("Stopping FillDISK injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "--cleanfill", injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleanfill", injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -127,7 +145,7 @@ public class Disk implements Injectable
     private boolean readonly(final ReadOnly injection) {
         try {
             Disk.LOG.info("Starting RONLY injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-r", injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-r", injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -138,7 +156,7 @@ public class Disk implements Injectable
     private boolean unreadonly(final ReadOnly injection) {
         try {
             Disk.LOG.info("Stopping RONLY injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "--cleanreadonly ", injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleanreadonly ", injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -149,7 +167,7 @@ public class Disk implements Injectable
     private boolean unmount(final UnMount injection) {
         try {
             Disk.LOG.info("Starting unMOUNT injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-u", injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-u", injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);
@@ -160,7 +178,7 @@ public class Disk implements Injectable
     private boolean mount(final UnMount injection) {
         try {
             Disk.LOG.info("Stopping unMOUNT injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "--cleanunmount", injection.getMountPoint());
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleanunmount", injection.getMountPoint());
         }
         catch (Exception e) {
             Disk.LOG.error("Exception", e);

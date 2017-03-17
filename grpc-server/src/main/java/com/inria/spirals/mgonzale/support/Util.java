@@ -4,6 +4,7 @@ import java.nio.file.attribute.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
+import java.util.stream.Stream;
 import java.io.*;
 import org.slf4j.*;
 import org.springframework.core.io.ClassPathResource;
@@ -24,6 +25,16 @@ public class Util
     }
     
     static Path getResource(final String resource, final Path dir) throws IOException {
+    	
+    	System.out.println("path "+ resource +" " +dir);
+    	
+    	
+    	
+    	
+    	
+    	
+    	
+    	
         final Path destPath = dir.resolve(resource);
         if (!Files.exists(destPath, new LinkOption[0])) {
             Files.createDirectories(destPath.getParent(), (FileAttribute<?>[])new FileAttribute[0]);

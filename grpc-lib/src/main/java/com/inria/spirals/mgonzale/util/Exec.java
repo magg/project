@@ -2,6 +2,7 @@ package com.inria.spirals.mgonzale.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.function.Function;
@@ -23,7 +24,11 @@ public class Exec {
 	    
 	    public static <R, A> A exec(final Function<? super String, ? extends R> mapper, final Collector<? super R, ?, A> collector, final String... cmd) {
 	        try {
-	            final Process proc = Runtime.getRuntime().exec(cmd);
+	        	
+	    		ProcessBuilder pb = new ProcessBuilder(cmd );
+					pb.redirectErrorStream(true); 
+			        Process proc = pb.start();
+	            //final Process proc = Runtime.getRuntime().exec(cmd);
 	            final int result = proc.waitFor();
 	            if (result != 0) {
 	                try (final BufferedReader stream = new BufferedReader(new InputStreamReader(proc.getErrorStream()))) {
@@ -35,9 +40,7 @@ public class Exec {
 	                return stream.lines().map(mapper).collect(collector);
 	            }
 	        }
-	        catch (InterruptedException | IOException ex2) {
-	        	 /*final */ Exception ex = null;
-	        	 /*final */ Exception e = ex;
+	        catch (InterruptedException | IOException e) {
 	            Exec.LOG.error("Cannot run " + Arrays.toString(cmd) + " " + e);
 	            throw new RuntimeException(e);
 	        }
@@ -45,7 +48,13 @@ public class Exec {
 	    
 	    public static int exec(final StringBuilder stdout, final StringBuilder stderr, final String... cmd) {
 	        try {
-	            final Process proc = Runtime.getRuntime().exec(cmd);
+	        	
+	        	
+	    		ProcessBuilder pb = new ProcessBuilder(cmd );
+				pb.redirectErrorStream(true); 
+		        Process proc = pb.start(); 
+
+	            //final Process proc = Runtime.getRuntime().exec(cmd);
 	            final int result = proc.waitFor();
 	            try (final BufferedReader reader = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
 	                reader.lines().forEach(line -> stdout.append(line).append('\n'));
@@ -55,9 +64,7 @@ public class Exec {
 	            }
 	            return result;
 	        }
-	        catch (InterruptedException | IOException ex2) {
-	        	 /*final */ Exception ex = null;
-	        	 /*final */ Exception e = ex;
+	        catch (InterruptedException | IOException e) {
 	            Exec.LOG.error("Cannot run " + Arrays.toString(cmd) + " " + e);
 	            throw new RuntimeException(e);
 	        }

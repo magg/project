@@ -17,7 +17,7 @@ buildscript {
         springSleuthVersion = '1.1.0.RELEASE'
         springCloudVersion = 'Camden.SR6'
         springCloudConsulVersion = '1.1.2.RELEASE'
-        springCloudEurekaVersion = '1.2.3.RELEASE'
+        springCloudEurekaVersion = '1.2.6.RELEASE'
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE"

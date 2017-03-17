@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +21,7 @@ import com.inria.spirals.mgonzale.grpc.lib.*;
 
 
 @Component
-public class InjectionService extends AbstractGrpcService  implements ApplicationListener<ApplicationReadyEvent> {
+public class InjectionService extends AbstractGrpcService {
 	
 	
 	private static final Logger LOG = LoggerFactory.getLogger(InjectionService.class);
@@ -35,8 +37,8 @@ public class InjectionService extends AbstractGrpcService  implements Applicatio
 	 @Value("${agent.timeout}")
 	 private long timeout;
 	
-	@Override
-	public void onApplicationEvent(ApplicationReadyEvent event) {	
+	@EventListener(ContextRefreshedEvent.class)
+	public void initAgent() {	
 		System.out.println("timeout es: " +timeout);
 		executor = new InjectionWorker(this,dryRun, timeout);
 		FutureTask<Object> task = new FutureTask<Object> (executor);

@@ -24,13 +24,12 @@ import io.grpc.ManagedChannelBuilder;
  * Date: 2016/11/8
  */
 @Service
-public class GrpcClientService implements ApplicationListener<ApplicationReadyEvent> {
+public class GrpcClientService  {
 
     @GrpcClient("cloud-grpc-server")
     private Channel serverChannel;
     private String address = null;
     private int port;
-    private ManagedChannel channel;
     
     private AgenTestGrpc.AgenTestBlockingStub stub;
     
@@ -41,7 +40,7 @@ public class GrpcClientService implements ApplicationListener<ApplicationReadyEv
     public GrpcClientService(final String address, final int port) {
         this.address = address;
         this.port = port;
-        this.channel = ManagedChannelBuilder.forAddress(this.address, this.port).usePlaintext(true).build();
+        final ManagedChannel channel = ManagedChannelBuilder.forAddress(this.address, this.port).usePlaintext(true).build();
         this.stub = AgenTestGrpc.newBlockingStub(channel);
         
     }
@@ -58,17 +57,9 @@ public class GrpcClientService implements ApplicationListener<ApplicationReadyEv
         return this.address;
     }**/
     
-    @Override
-	public void onApplicationEvent(ApplicationReadyEvent event) {	
-		System.out.println("timeout es: ");
-		//serverChannel.
-		
-		
-        //this.stub = AgenTestGrpc.newBlockingStub(serverChannel);
-
-	}
     
     public String getIPAddress() {
+    	System.out.println("address " + this.address + " port "+ this.port);
         final Faultinjection.StringMessage response = this.stub.getIPAddress(Faultinjection.VoidMessage.getDefaultInstance());
         return response.getText();
     }

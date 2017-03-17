@@ -4,12 +4,31 @@ import com.inria.spirals.mgonzale.domain.*;
 import com.inria.spirals.mgonzale.support.*;
 import com.inria.spirals.mgonzale.model.*;
 import com.inria.spirals.mgonzale.grpc.lib.*;
+
+import java.io.IOException;
+
 import org.apache.commons.logging.*;
+import org.springframework.core.io.ClassPathResource;
 
 public class Misc implements Injectable
 {
     private static final int MAX_RETRY = 1;
     private static final Log log;
+    
+    
+    public String getFilePath(){
+    	String path = null;
+		try {
+
+		path =  new ClassPathResource("scripts/inject.sh").getFile().getAbsolutePath();
+			
+		} catch (IOException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return path;
+    	
+    }
     
     @Override
     public boolean onStart(final Injection injection) {
@@ -48,7 +67,7 @@ public class Misc implements Injectable
     private boolean hang() {
         try {
             Misc.log.info("Starting HANG injection");
-            return Util.runScriptPrintRetry(1, "/bin/inject.sh", "-a");
+            return Util.runScriptPrintRetry(1, getFilePath(), "-a");
         }
         catch (Exception e) {
             Misc.log.error(e);
@@ -59,7 +78,7 @@ public class Misc implements Injectable
     private boolean unhang() {
         try {
             Misc.log.info("Stopping HANG injection");
-            return Util.runScriptPrintRetry(1, "/bin/inject.sh", "--cleanhang");
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleanhang");
         }
         catch (Exception e) {
             Misc.log.error(e);

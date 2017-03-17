@@ -6,16 +6,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import java.util.UUID; 
-import java.util.Arrays; 
+import java.util.UUID;
+import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.inria.spirals.mgonzale.domain.dto.Failure;
@@ -27,34 +32,34 @@ import com.inria.spirals.mgonzale.model.injections.*;
 
 @Service
 public class DiscoveryService {
-	
+
 	@Autowired
 	private DiscoveryClient discoveryClient;
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(DiscoveryService.class);
-	
-	
+
+
 	private ConcurrentMap<Injection, UUID> injectionHM = new ConcurrentHashMap<Injection, UUID>();
 
-	
+
 	@Autowired
 	private DefaultAgenTestSession sessions;
-	
-	public List<ServiceInstance> getListofServers(){	
+
+	public List<ServiceInstance> getListofServers(){
 		List<ServiceInstance> instances = discoveryClient.getInstances("cloud-grpc-server");
 		return instances;
 	}
-	
+
 	private List<com.inria.spirals.mgonzale.model.SocketAddress> getAddresses(String ip, Collection<Integer> ports) {
 		return ports.stream().map(p -> new com.inria.spirals.mgonzale.model.SocketAddress(ip, p)).collect(Collectors.toList());
 	}
-	
+
 
 	/*
 	private List<SocketAddress> getAddresses() {
 	    return getListofServers().stream().map(p -> new SocketAddress(p.getHost(), p.getPort())).collect(Collectors.toList());
 	}
-	
+
 
 	   private List<AddressBlock> getAddressBlocks() {
 	       Faultinjection.Direction direction = Faultinjection.Direction.valueOf("INPUT");
@@ -65,10 +70,10 @@ public class DiscoveryService {
 	           return addressBlock;
 	       }).collect(Collectors.toList());
 	   }
-	   
-	   
 
-	   
+
+
+
 	   private List<AddressBlock> getAddressBlocks(String ip, Collection<Integer> ports, String dir) {
 	       Faultinjection.Direction direction = Faultinjection.Direction.valueOf(dir);
 	       AddressBlock addressBlock = null;
@@ -78,23 +83,25 @@ public class DiscoveryService {
 	           return addressBlock;
 	       }).collect(Collectors.toList());
 	   }
-	   
-	*/  
-	   private int name2pid(final String processName, final String hostName) {
-	       final String findCmd = String.format("pgrep -f -o %s", processName);
-	       final GrpcClientService agenTestClient = sessions.getSessions().get(hostName);
+
+	*/
+	   private int name2pid(Failure f) {
+	       final String findCmd = String.format("pgrep -f -o %s", f.getProcessName());
+	       final GrpcClientService agenTestClient = sessions.getSessions().get(new InetSocketAddress(f.getHost(), f.getPort()));
 	       return agenTestClient.queryPid(findCmd);
 	   }
-	   
-	   
-	   
+
+
+
 	   private Injection createInjection(Failure f, final Faultinjection.InjectionType target, final Faultinjection.InjectionAction action, final int pid) {
-	       final GrpcClientService client = sessions.getSessions().get(f.getHost());
+	       final GrpcClientService client = sessions.getSessions().get(new InetSocketAddress(f.getHost(), f.getPort()));
+	       System.out.println("LOL "+client.toString());
+
 	       final String ip = client.getIPAddress();
 	       final Collection<Integer> ports = client.listPorts(pid);
 	       LOG.info("Creating network injection {} for {} : {}", target, ip, ports);
 	       switch (target) {
-	       
+
 	       /*
 	           case DROP: {
 	               return new Drop(action,getAddressBlocks(ip, ports));
@@ -132,13 +139,13 @@ public class DiscoveryService {
 	               throw new IllegalArgumentException("Unknown target " + target);
 	           }
 	       }
-	   }   
-	  
-	   
+	   }
+
+
 	   private boolean actionHandler(Failure f, final Injection injection) {
 		   final Faultinjection.InjectionAction cmd = Faultinjection.InjectionAction.valueOf(f.getCmd());
 	       LOG.info(String.format("AgenTestAction invoked with params host = %s, cmd = %s , injection = %s", f.getHost(), cmd, injection));
-	       final GrpcClientService client = sessions.getSessions().get(f.getHost());
+	       final GrpcClientService client = sessions.getSessions().get(new InetSocketAddress(f.getHost(), f.getPort()));
 	       switch (cmd) {
 	           case START: {
 	               final UUID token = client.trigger(injection);
@@ -180,13 +187,13 @@ public class DiscoveryService {
 	       }
 	       throw new IllegalArgumentException("Unknown command " + cmd);
 	   }
-	   
-	   
+
+
 	   private Injection createInjection(Failure f, int pid) {
 	       final Faultinjection.InjectionAction action = Faultinjection.InjectionAction.valueOf(f.getCmd());
 	       return this.createInjection(f, action, pid);
 	   }
-	   
+
 	   private Injection createInjection(Failure f, final Faultinjection.InjectionAction action, final int pid) {
 	       final Faultinjection.InjectionType target = Faultinjection.InjectionType.valueOf(f.getType().toUpperCase());
 	       switch (target) {
@@ -214,6 +221,11 @@ public class DiscoveryService {
 	           case UNMOUNT: {
 	               return new UnMount(action, f.getMountPoint());
 	           }
+
+	           case DELETE: {
+	               return new Delete(action, f.getPath());
+	           }
+
 	           case SUICIDE: {
 	               return new Suicide(action);
 	           }
@@ -255,24 +267,61 @@ public class DiscoveryService {
 	           }
 	       }
 	   }
-	   
-	   
+
+
 	   private int getPid(Failure f) {
 	       int pid;
-	       pid = name2pid(f.getProcessName(), f.getHost());
+	       pid = name2pid(f);
 	       return pid;
-		   
+
 	   }
-	  
+
 	   public boolean doAction(final Failure f) throws InterruptedException {
 		   int pid = -1;
 		   if (f.getProcessName() != null){
 			   pid = getPid(f);
 		   }
-		   
+
 	       return actionHandler(f, createInjection(f,pid));
 	   }
-	   
-	   
+
+
+	   @EventListener(ContextRefreshedEvent.class)
+	   public void testFail(){
+
+		   for (ServiceInstance instance: getListofServers()){
+			   Failure f = new Failure();
+			   f.setCmd("START_WAIT_STOP");
+			   //f.setAmount(10);
+			   f.setPeriodSec(30);
+			   f.setPath("/tmp/TEST/lol");
+
+			   f.setType("DELETE");
+			   //f.setAmount(98);
+			   f.setHost(instance.getHost());
+			   //f.setProcessName("dropbox");
+			   f.setPort(3000);
+			   System.out.println(sessions.getSessions().toString());
+
+
+				try {
+				doAction(f);
+
+
+
+				} catch (InterruptedException e){
+					System.out.println("timeout es : 3");
+
+				}
+
+
+		   }
+
+	   }
+
+
+
+
+
 
 }

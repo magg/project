@@ -15,9 +15,11 @@ import java.util.Objects;
 
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.*;
 
+@Component
 public class Tc implements Injectable
 {
     private static final int MAX_RETRY = 1;

@@ -38,7 +38,17 @@ public abstract class Injection
     }
     
     public Injection invert() {
-        return (this.action == Faultinjection.InjectionAction.START) ? this.setAction(Faultinjection.InjectionAction.STOP) : this.setAction(Faultinjection.InjectionAction.START);
+    	if (this.action == Faultinjection.InjectionAction.START){
+    		return this.setAction(Faultinjection.InjectionAction.STOP);
+    	}
+    	
+    	if (this.action == Faultinjection.InjectionAction.START_WAIT_STOP){
+    		return this.setAction(Faultinjection.InjectionAction.STOP);
+    	}
+    	
+    	return this.setAction(Faultinjection.InjectionAction.START);
+    	//return (this.action == Faultinjection.InjectionAction.START) ? this.setAction(Faultinjection.InjectionAction.STOP) : this.setAction(Faultinjection.InjectionAction.START);
+
     }
     
     @Override
@@ -91,8 +101,8 @@ public abstract class Injection
                 return new CorruptHDFS(injection);
             }
             case DCORRUPT: {
-            		return null;
-                //return new DiskCorrupt(injection);
+            		//return null;
+                return new DiskCorrupt(injection);
             }
             case DDELAY: {
                 return new DiskDelay(injection);
@@ -153,6 +163,9 @@ public abstract class Injection
             }
             case UNMOUNT: {
                 return new UnMount(injection);
+            }
+            case DELETE: {
+                return new Delete(injection);
             }
             default: {
                 throw new IllegalArgumentException();

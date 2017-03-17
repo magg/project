@@ -39,6 +39,8 @@ enum InjectionType {
       DDELAY = 24;
       DCORRUPT = 25;
       DFAIL= 26;
+      DELETE = 27;
+      
  }
 
 enum InjectionAction {

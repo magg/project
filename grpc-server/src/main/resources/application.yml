@@ -7,11 +7,14 @@ scheduler:
   poolSize: 200
 
 agent:
-  dryRun: true
+  dryRun: false
   timeout: 500
 
 scripts:
-  path: "scripts/"
+  path: scripts
+  
+tc:
+  interface: wlp1s0
 
 spring:
   application:

@@ -18,6 +18,7 @@ public class Failure {
 	private String processName;
 	
 	private String host;
+	private int port;
 	
 	private String type;
 	
@@ -110,6 +111,12 @@ public class Failure {
 	}
 	public void setType(String type) {
 		this.type = type;
+	}
+	public int getPort() {
+		return port;
+	}
+	public void setPort(int port) {
+		this.port = port;
 	}
 
 }

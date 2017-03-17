@@ -5,12 +5,35 @@ import com.inria.spirals.mgonzale.support.*;
 import com.inria.spirals.mgonzale.model.*;
 import com.inria.spirals.mgonzale.model.injections.*;
 import com.inria.spirals.mgonzale.grpc.lib.*;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import org.slf4j.*;
+import org.springframework.core.io.ClassPathResource;
 
 public class Cpu implements Injectable
 {
     private static final Logger LOG = LoggerFactory.getLogger(Cpu.class);
     private static final int MAX_RETRY = 1;
+        
+    
+    public String getFilePath(){
+    	String path = null;
+		try {
+
+		path =  new ClassPathResource("scripts/inject.sh").getFile().getAbsolutePath();
+			
+		} catch (IOException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return path;
+    	
+    }
+
     
     @Override
     public boolean onStart(final Injection injection) {
@@ -57,7 +80,7 @@ public class Cpu implements Injectable
     private boolean burn(final BurnCPU injection) {
         try {
             Cpu.LOG.info("Starting BurnCPU injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-b", injection.getAmount());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-b", injection.getAmount());
         }
         catch (Exception e) {
             Cpu.LOG.error("Exception", e);
@@ -68,7 +91,7 @@ public class Cpu implements Injectable
     private boolean stop(final SigStop injection) {
         try {
             Cpu.LOG.info("Stopping SIGSTOP injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-s", injection.getPid());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-s", injection.getPid());
         }
         catch (Exception e) {
             Cpu.LOG.error("Exception", e);
@@ -79,7 +102,7 @@ public class Cpu implements Injectable
     private boolean unburn(final BurnCPU injection) {
         try {
             Cpu.LOG.info("Stopping BurnCPU injection {}", injection);
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "--cleancpu");
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleancpu");
         }
         catch (Exception e) {
             Cpu.LOG.error("Exception", e);
@@ -90,7 +113,7 @@ public class Cpu implements Injectable
     private boolean unstop(final SigStop injection) {
         try {
             Cpu.LOG.info("Stopping SIGSTOP injection");
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-c ", injection.getPid());
+            return Util.runScriptPrintRetry(1, getFilePath(), "-c ", injection.getPid());
         }
         catch (Exception e) {
             Cpu.LOG.error("Exception", e);

@@ -5,12 +5,31 @@ import com.inria.spirals.mgonzale.support.*;
 import com.inria.spirals.mgonzale.model.*;
 import com.inria.spirals.mgonzale.model.injections.*;
 import com.inria.spirals.mgonzale.grpc.lib.*;
+
+import java.io.IOException;
+
 import org.apache.commons.logging.*;
+import org.springframework.core.io.ClassPathResource;
 
 public class Memory implements Injectable
 {
     private static final int MAX_RETRY = 1;
     private static final Log log;
+    
+    
+    public String getFilePath(){
+    	String path = null;
+		try {
+
+		path =  new ClassPathResource("scripts/inject.sh").getFile().getAbsolutePath();
+			
+		} catch (IOException  e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return path;
+    	
+    }
     
     @Override
     public boolean onStart(final Injection injection) {
@@ -26,7 +45,7 @@ public class Memory implements Injectable
         try {
             final long amount = injection.getAmount();
             Memory.log.info("Starting FILLMEM injection");
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "-m", Long.toString(amount));
+            return Util.runScriptPrintRetry(1, getFilePath(), "-m", Long.toString(amount));
         }
         catch (Exception e) {
             Memory.log.error(e);
@@ -37,7 +56,7 @@ public class Memory implements Injectable
     private boolean unfill() {
         try {
             Memory.log.info("Stopping FILLMEM injection");
-            return Util.runScriptPrintRetry(1, "/scripts/inject.sh", "--cleanmem");
+            return Util.runScriptPrintRetry(1, getFilePath(), "--cleanmem");
         }
         catch (Exception e) {
             Memory.log.error(e);

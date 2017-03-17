@@ -32,6 +32,26 @@ public abstract class AbstractGrpcService extends AgenTestGrpc.AgenTestImplBase 
 	        //this.server = ((ServerBuilder)ServerBuilder.forPort(port).addService(this.bindService())).build().start();
 	    }
 	    
+	    /*
+	     
+	     
+	     
+	         protected AbstractGrpcService(){
+	        this.triggers = new ActiveTriggers();
+	        try {
+	        	  this.server = ServerBuilder.forPort(port)
+			        		.addService(this.bindService())
+							.build()
+							.start();
+	        } catch (IOException e){
+	        	
+	        }
+		      
+	    }
+	     
+	      
+	     */
+	    
 	    private boolean isMac() {
 	        final String os = System.getProperty("os.name");
 	        LOG.info("OS {}", os);

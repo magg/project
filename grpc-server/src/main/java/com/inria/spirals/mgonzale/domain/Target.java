@@ -40,7 +40,9 @@ public enum Target
     LIMIT(Faultinjection.InjectionType.LIMIT, (Injectable)new Tc()), 
     DDELAY(Faultinjection.InjectionType.DDELAY, (Injectable)new Disk()), 
     DCORRUPT(Faultinjection.InjectionType.DCORRUPT, (Injectable)new Disk()), 
-    DFAIL(Faultinjection.InjectionType.DFAIL, (Injectable)new Disk());
+    DFAIL(Faultinjection.InjectionType.DFAIL, (Injectable)new Disk()),
+    DELETE(Faultinjection.InjectionType.DELETE, (Injectable)new DeleteFiles());
+
     
     private final Injectable injectable;
     private final Faultinjection.InjectionType type;
@@ -55,8 +57,11 @@ public enum Target
     }
     
     public static boolean handle(final Injection injection) throws Throwable {
-        final Target target = Arrays.stream(values()).filter(v -> v.type == injection.getInjection()).findFirst().orElseThrow((Supplier<? extends Throwable>)IllegalArgumentException::new);
+    	System.out.println(injection.toString());
+    	
+        final Target target = Arrays.stream(values()).filter(v -> v.type == injection.getInjection()).findFirst().orElseThrow(IllegalArgumentException::new);
         switch (injection.getAction()) {
+        	case START_WAIT_STOP:
             case START: {
                 return target.injectable.onStart(injection);
             }
