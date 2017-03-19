@@ -12,18 +12,25 @@ agent:
 
 scripts:
   path: scripts
-  
+
 tc:
-  interface: wlp1s0
+  interface: eth0
 
 spring:
   application:
     name: cloud-grpc-server
+  profiles:
+    active: docker
 server:
   port: 0
 grpc:
   server:
     port: 3000
+
+---
+spring:
+  profiles: dev
+
 eureka:
   client:
     register-with-eureka: true
@@ -32,3 +39,13 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
   instance:
     instanceId: ${spring.application.name}:${vcap.application.instance_id:${spring.application.instance_id:${random.value}}}
+
+---
+spring:
+  profiles: docker
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+  instance:
+    preferIpAddress: true

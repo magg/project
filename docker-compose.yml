@@ -1,0 +1,49 @@
+version : '2'
+
+services:
+  eureka:
+    build:
+      context: eureka-server
+      dockerfile: eureka-server.dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - net-spring-db
+    container_name: eureka
+
+  grpc-server0:
+    build:
+      context: grpc-server
+      dockerfile: grpc-server.dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - net-spring-db
+    container_name: grpc-server0
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - eureka
+    cap_add:
+      - NET_ADMIN
+  grpc-server1:
+    build:
+      context: grpc-server
+      dockerfile: grpc-server.dockerfile
+    ports:
+      - "3001:3000"
+    networks:
+      - net-spring-db
+    container_name: grpc-server1
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - eureka
+    cap_add:
+      - NET_ADMIN
+
+networks:
+  net-spring-db:
+    driver: bridge
