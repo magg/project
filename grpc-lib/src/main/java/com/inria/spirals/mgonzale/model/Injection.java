@@ -167,6 +167,10 @@ public abstract class Injection
             case DELETE: {
                 return new Delete(injection);
             }
+            case DOWN: {
+                return new Down(injection);
+            }
+            
             default: {
                 throw new IllegalArgumentException();
             }

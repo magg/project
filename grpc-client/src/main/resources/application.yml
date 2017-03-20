@@ -1,8 +1,23 @@
+executor:
+  corePoolSize: 200
+  maxPoolSize: 200
+  queueCapacity: 1800
+
+scheduler:
+  poolSize: 200
+
 server:
   port: 8080
 spring:
   application:
     name: cloud-grpc-client
+  profiles:
+    active: docker
+
+---
+spring:
+  profiles: dev
+
 eureka:
   client:
     register-with-eureka: true
@@ -10,10 +25,14 @@ eureka:
     service-url:
       defaultZone: http://localhost:8761/eureka/
 
-
-
+---
 spring:
   profiles: docker
 eureka:
   client:
-    defaultZone:  ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+  instance:
+    preferIpAddress: true

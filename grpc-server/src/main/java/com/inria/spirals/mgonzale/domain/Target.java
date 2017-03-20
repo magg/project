@@ -41,7 +41,9 @@ public enum Target
     DDELAY(Faultinjection.InjectionType.DDELAY, (Injectable)new Disk()), 
     DCORRUPT(Faultinjection.InjectionType.DCORRUPT, (Injectable)new Disk()), 
     DFAIL(Faultinjection.InjectionType.DFAIL, (Injectable)new Disk()),
-    DELETE(Faultinjection.InjectionType.DELETE, (Injectable)new DeleteFiles());
+    DELETE(Faultinjection.InjectionType.DELETE, (Injectable)new DeleteFiles()),
+    DOWN(Faultinjection.InjectionType.DOWN, (Injectable)new DownInterface());
+
 
     
     private final Injectable injectable;

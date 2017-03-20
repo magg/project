@@ -47,7 +47,7 @@ public class GrpcClientService  {
     
     
     public GrpcClientService(final InetSocketAddress address) {
-        this(address.getHostName(), address.getPort());
+        this(address.getAddress().getHostAddress(), address.getPort());
     }
  
     

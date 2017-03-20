@@ -27,22 +27,24 @@ services:
       - eureka
     cap_add:
       - NET_ADMIN
-  grpc-server1:
+
+
+  grpc-client0:
     build:
-      context: grpc-server
-      dockerfile: grpc-server.dockerfile
+      context: grpc-client
+      dockerfile: grpc-client.dockerfile
     ports:
-      - "3001:3000"
+      - "8080:8080"
     networks:
       - net-spring-db
-    container_name: grpc-server1
+    container_name: grpc-client0
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
       - SPRING_PROFILES_ACTIVE=docker
     depends_on:
       - eureka
-    cap_add:
-      - NET_ADMIN
+      - grpc-server0
+
 
 networks:
   net-spring-db:

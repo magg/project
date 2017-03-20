@@ -48,4 +48,6 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
   instance:
-    preferIpAddress: true
+    prefer-ip-address: true
+    hostname: ${LOCAL_IP}
+    ip-address: ${LOCAL_IP}

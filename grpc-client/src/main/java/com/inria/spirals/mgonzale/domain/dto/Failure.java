@@ -20,6 +20,8 @@ public class Failure {
 	private String host;
 	private int port;
 	
+	private String iface;
+	
 	private String type;
 	
 	public String getAccessMode() {
@@ -117,6 +119,12 @@ public class Failure {
 	}
 	public void setPort(int port) {
 		this.port = port;
+	}
+	public String getIface() {
+		return iface;
+	}
+	public void setIface(String iface) {
+		this.iface = iface;
 	}
 
 }

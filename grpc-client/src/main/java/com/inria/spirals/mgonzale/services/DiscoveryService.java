@@ -225,6 +225,10 @@ public class DiscoveryService {
 	           case DELETE: {
 	               return new Delete(action, f.getPath());
 	           }
+	           
+	           case DOWN: {
+	               return new Down(action, f.getIface());
+	           }
 
 	           case SUICIDE: {
 	               return new Suicide(action);
@@ -286,17 +290,31 @@ public class DiscoveryService {
 	   }
 
 
-	   @EventListener(ContextRefreshedEvent.class)
+	   //@EventListener(ContextRefreshedEvent.class)
 	   public void testFail(){
+		   
+		   
+		   sessions.getSessions().entrySet().stream().parallel().forEach(e ->  failScenario(e.getKey()) );
+		   
+				   
+				
+	/*	   
+		   try {
+			   TimeUnit.MINUTES.sleep(2);
 
-		   for (ServiceInstance instance: getListofServers()){
+			} catch(InterruptedException ex) {
+			    Thread.currentThread().interrupt();
+			}
+		
+		   for (ServiceInstance instance: sessions){
 			   Failure f = new Failure();
 			   f.setCmd("START_WAIT_STOP");
 			   //f.setAmount(10);
-			   f.setPeriodSec(30);
-			   f.setPath("/tmp/TEST/lol");
+			   f.setPeriodSec(300);
+			   //f.setPath("/tmp/TEST/lol");
 
-			   f.setType("DELETE");
+			   f.setType("DOWN");
+			   f.setIface("eth0");
 			   //f.setAmount(98);
 			   f.setHost(instance.getHost());
 			   //f.setProcessName("dropbox");
@@ -316,7 +334,35 @@ public class DiscoveryService {
 
 
 		   }
+*/   
+	   }
+	   
+	   
+	   public void failScenario(InetSocketAddress address){
+		   
+		   Failure f = new Failure();
+		   f.setCmd("START_WAIT_STOP");
+		   //f.setAmount(10);
+		   f.setPeriodSec(300);
+		   //f.setPath("/tmp/TEST/lol");
 
+		   f.setType("DOWN");
+		   f.setIface("eth0");
+		   //f.setAmount(98);
+		   f.setHost(address.getAddress().getHostAddress());
+		   //f.setProcessName("dropbox");
+		   f.setPort(3000);
+
+			try {
+			doAction(f);
+
+
+
+			} catch (InterruptedException e){
+				System.out.println("timeout es : 3");
+
+			}
+		   
 	   }
 
 
