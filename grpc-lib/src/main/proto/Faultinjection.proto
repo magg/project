@@ -41,7 +41,7 @@ enum InjectionType {
       DFAIL= 26;
       DELETE = 27;
       DOWN = 28;
-      
+
  }
 
 enum InjectionAction {
@@ -71,6 +71,7 @@ message Injection {
 	Direction direction = 19;
 	repeated AddressBlock blocks = 20;
 	string iface = 21;
+  int32 sleep = 22;
 }
 
 message TriggerRequest {

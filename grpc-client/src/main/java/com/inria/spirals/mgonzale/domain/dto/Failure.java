@@ -13,7 +13,7 @@ public class Failure {
 	private int probability;
 	private long size;
 	
-	private int periodSec;
+	private int periodSec = 0;
 	private String cmd;
 	private String processName;
 	

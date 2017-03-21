@@ -12,10 +12,13 @@ public abstract class Injection
 {
     protected final Faultinjection.InjectionType type;
     protected final Faultinjection.InjectionAction action;
+    protected int sleep = 0;
     
     public Injection(final Faultinjection.Injection injection) {
         this.type = injection.getName();
         this.action = injection.getAction();
+        this.sleep = injection.getSleep();
+
     }
     
     public Injection(final Faultinjection.InjectionType type, final Faultinjection.InjectionAction action) {
@@ -35,6 +38,10 @@ public abstract class Injection
     
     public Faultinjection.InjectionType getType() {
         return this.type;
+    }
+    
+    public int getSleep(){
+    	return this.sleep;
     }
     
     public Injection invert() {

@@ -166,23 +166,15 @@ public class DiscoveryService {
 	               return client.cancel(token);
 	           }
 	           case START_WAIT_STOP: {
-	               final int sleepTimeSecInt =f.getPeriodSec();
+	               //final int sleepTimeSecInt =f.getPeriodSec();
 	               final UUID token = client.trigger(injection);
 	               injectionHM.put(injection, token);
 	               if (token == null) {
 	            	   LOG.error("Cannot inject {} to {} ", injection, client);
 	                   return false;
 	               }
-	               try {
-	            	   LOG.info("Sleeping for " + sleepTimeSecInt + " sec");
-	                   TimeUnit.SECONDS.sleep(sleepTimeSecInt);
-	                   return client.cancel(token);
-	               }
-	               catch (InterruptedException e) {
-	            	   LOG.info("Action was interrupted", e);
-	                   Thread.currentThread().interrupt();
-	               }
-	               break;
+	               return true;
+
 	           }
 	       }
 	       throw new IllegalArgumentException("Unknown command " + cmd);
@@ -223,11 +215,11 @@ public class DiscoveryService {
 	           }
 
 	           case DELETE: {
-	               return new Delete(action, f.getPath());
+	               return new Delete(action, f.getPath(), f.getPeriodSec());
 	           }
 	           
 	           case DOWN: {
-	               return new Down(action, f.getIface());
+	               return new Down(action, f.getIface(), f.getPeriodSec());
 	           }
 
 	           case SUICIDE: {

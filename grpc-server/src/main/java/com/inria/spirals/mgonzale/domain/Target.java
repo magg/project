@@ -9,7 +9,11 @@ import com.inria.spirals.mgonzale.model.*;
 import com.inria.spirals.mgonzale.grpc.lib.*;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.function.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
@@ -49,6 +53,9 @@ public enum Target
     private final Injectable injectable;
     private final Faultinjection.InjectionType type;
     
+	private static final Logger LOG = LoggerFactory.getLogger(Target.class);
+
+    
     private Target(final Faultinjection.InjectionType type, final Injectable injectable) {
         this.type = type;
         this.injectable = injectable;
@@ -59,11 +66,26 @@ public enum Target
     }
     
     public static boolean handle(final Injection injection) throws Throwable {
-    	System.out.println(injection.toString());
+    	//System.out.println(injection.toString());
     	
         final Target target = Arrays.stream(values()).filter(v -> v.type == injection.getInjection()).findFirst().orElseThrow(IllegalArgumentException::new);
         switch (injection.getAction()) {
         	case START_WAIT_STOP:
+        			target.injectable.onStart(injection);
+        			final int sleepTimeSecInt =injection.getSleep();
+	               try {
+	            	   LOG.info("Sleeping for " + sleepTimeSecInt + " sec");
+	                   TimeUnit.SECONDS.sleep(sleepTimeSecInt);
+	                   //return client.cancel(token);
+	                   return target.injectable.onStop(injection);
+	               }
+	               catch (InterruptedException e) {
+	            	   LOG.info("Action was interrupted", e);
+	                   Thread.currentThread().interrupt();
+	               }
+	               return false;
+
+        		
             case START: {
                 return target.injectable.onStart(injection);
             }
