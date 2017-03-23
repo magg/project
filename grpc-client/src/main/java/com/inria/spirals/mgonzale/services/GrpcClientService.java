@@ -31,7 +31,7 @@ public class GrpcClientService  {
     private String address = null;
     private int port;
     
-    private AgenTestGrpc.AgenTestBlockingStub stub;
+    private AgentGrpc.AgentBlockingStub stub;
     
     public GrpcClientService() {
     	super();
@@ -41,7 +41,7 @@ public class GrpcClientService  {
         this.address = address;
         this.port = port;
         final ManagedChannel channel = ManagedChannelBuilder.forAddress(this.address, this.port).usePlaintext(true).build();
-        this.stub = AgenTestGrpc.newBlockingStub(channel);
+        this.stub = AgentGrpc.newBlockingStub(channel);
         
     }
     
@@ -49,25 +49,6 @@ public class GrpcClientService  {
     public GrpcClientService(final InetSocketAddress address) {
         this(address.getAddress().getHostAddress(), address.getPort());
     }
- 
-    
-    /**
-    
-    public String getAddress() {
-        return this.address;
-    }**/
-    
-    
-    public String getIPAddress() {
-    	System.out.println("address " + this.address + " port "+ this.port);
-        final Faultinjection.StringMessage response = this.stub.getIPAddress(Faultinjection.VoidMessage.getDefaultInstance());
-        return response.getText();
-    }
-  
-    /**
-    public int getPort() {
-        return this.port;
-    }**/
     
     public UUID trigger(final Injection injection) {
         final Faultinjection.TriggerResponse response = this.stub.trigger(new TriggerRequest(injection).createRequest());
@@ -87,29 +68,6 @@ public class GrpcClientService  {
         return new ActiveTriggers(response);
     }
     
-    public Collection<Integer> listPorts(final int pid) {
-        final Faultinjection.IntMessage request = Faultinjection.IntMessage.newBuilder().setInt(pid).build();
-        final Faultinjection.PortsMessage response = this.stub.listPorts(request);
-        return response.getPortsList();
-    }
-    
-    public int queryPid(final String query) {
-        final Faultinjection.QueryMessage queryMessage = Faultinjection.QueryMessage.newBuilder().setQuery(query).build();
-        final Faultinjection.IntMessage response = this.stub.getPid(queryMessage);
-        return response.getInt();
-    }
-    
-    public CommandTuple runCommand(final String command) {
-        final Faultinjection.StringMessage cmd = Faultinjection.StringMessage.newBuilder().setText(command).build();
-        final Faultinjection.CommandTuple commandTuple = this.stub.execCommand(cmd);
-        return new CommandTuple(commandTuple);
-    }
-    
-    public List<Integer> queryPids(final String query) {
-        final Faultinjection.QueryMessage queryMessage = Faultinjection.QueryMessage.newBuilder().setQuery(query).build();
-        final Faultinjection.PidsMessage response = this.stub.queryPids(queryMessage);
-        return response.getPidList();
-    }
     
     public boolean register(final EndpointRequest service) {
         final Faultinjection.EndPointResponse response = this.stub.register(service.createRequest());
@@ -124,35 +82,5 @@ public class GrpcClientService  {
         this.stub.shutdown(Faultinjection.VoidMessage.getDefaultInstance());
     }
   
-    /**
-    @Override
-    public String toString() {
-        return "AgenTestClient{address='" + this.address + '\'' + ", port=" + this.port + '}';
-    }**/
-    
-    public static class CommandTuple
-    {
-        private final int exitCode;
-        private final String stderr;
-        private final String stdout;
-        
-        public CommandTuple(final Faultinjection.CommandTuple commandTuple) {
-            this.stdout = commandTuple.getOutput();
-            this.stderr = commandTuple.getError();
-            this.exitCode = commandTuple.getExitCode();
-        }
-        
-        public int getExitCode() {
-            return this.exitCode;
-        }
-        
-        public String getStderr() {
-            return this.stderr;
-        }
-        
-        public String getStdout() {
-            return this.stdout;
-        }
-    }
 
 }

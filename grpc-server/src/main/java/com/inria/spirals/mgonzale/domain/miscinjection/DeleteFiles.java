@@ -14,7 +14,6 @@ import com.inria.spirals.mgonzale.grpc.lib.*;
 public class DeleteFiles implements Injectable {
 	
     private static final Log log = LogFactory.getLog(DeleteFiles.class);
-    private static final int MAX_RETRY = 1;
 
 
 

@@ -75,7 +75,7 @@ public class Down extends Injection
     }
     
     private void checkArguments() {
-        ArgumentChecker.checkArgument(this.iface != null, "iface value should not be null");
+    	Objects.requireNonNull(this.iface, "Interface value not defined.");
     }
     
 

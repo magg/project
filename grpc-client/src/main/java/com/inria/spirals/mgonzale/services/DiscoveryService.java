@@ -43,63 +43,21 @@ public class DiscoveryService {
 
 
 	@Autowired
-	private DefaultAgenTestSession sessions;
+	private AgentSessionImpl sessions;
 
 	public List<ServiceInstance> getListofServers(){
 		List<ServiceInstance> instances = discoveryClient.getInstances("cloud-grpc-server");
 		return instances;
 	}
 
-	private List<com.inria.spirals.mgonzale.model.SocketAddress> getAddresses(String ip, Collection<Integer> ports) {
-		return ports.stream().map(p -> new com.inria.spirals.mgonzale.model.SocketAddress(ip, p)).collect(Collectors.toList());
-	}
-
-
-	/*
-	private List<SocketAddress> getAddresses() {
-	    return getListofServers().stream().map(p -> new SocketAddress(p.getHost(), p.getPort())).collect(Collectors.toList());
-	}
-
-
-	   private List<AddressBlock> getAddressBlocks() {
-	       Faultinjection.Direction direction = Faultinjection.Direction.valueOf("INPUT");
-	       AddressBlock addressBlock = null;
-	       Faultinjection.Direction direction2 = null;
-	       return getListofServers().stream().map(p -> {
-	           new AddressBlock(direction2, new SocketAddress(p.getHost(), p.getPort()));
-	           return addressBlock;
-	       }).collect(Collectors.toList());
-	   }
 
 
 
-
-	   private List<AddressBlock> getAddressBlocks(String ip, Collection<Integer> ports, String dir) {
-	       Faultinjection.Direction direction = Faultinjection.Direction.valueOf(dir);
-	       AddressBlock addressBlock = null;
-	       Faultinjection.Direction direction2 = null;
-	       return ports.stream().map(p -> {
-	           new AddressBlock(direction, new SocketAddress(ip, p));
-	           return addressBlock;
-	       }).collect(Collectors.toList());
-	   }
-
-	*/
-	   private int name2pid(Failure f) {
-	       final String findCmd = String.format("pgrep -f -o %s", f.getProcessName());
-	       final GrpcClientService agenTestClient = sessions.getSessions().get(new InetSocketAddress(f.getHost(), f.getPort()));
-	       return agenTestClient.queryPid(findCmd);
-	   }
-
-
-
-	   private Injection createInjection(Failure f, final Faultinjection.InjectionType target, final Faultinjection.InjectionAction action, final int pid) {
+	   private Injection createInjection(Failure f, final Faultinjection.InjectionType target, final Faultinjection.InjectionAction action) {
 	       final GrpcClientService client = sessions.getSessions().get(new InetSocketAddress(f.getHost(), f.getPort()));
 	       System.out.println("LOL "+client.toString());
 
-	       final String ip = client.getIPAddress();
-	       final Collection<Integer> ports = client.listPorts(pid);
-	       LOG.info("Creating network injection {} for {} : {}", target, ip, ports);
+	       LOG.info("Creating network injection {}", target);
 	       switch (target) {
 
 	       /*
@@ -114,26 +72,19 @@ public class DiscoveryService {
 	           }
 	         */
 	           case LOSS: {
-	               return new Loss(action,getAddresses(ip, ports), f.getAmount());
+	               return new Loss(action, f.getAmount(), f.getPeriodSec());
 	           }
 	           case CORRUPT: {
-	               return new Corrupt(action,getAddresses(ip, ports), f.getAmount());
+	               return new Corrupt(action, f.getAmount(), f.getPeriodSec());
 	           }
 	           case DUPLICATE: {
-	               return new Duplicate(action,getAddresses(ip, ports), f.getAmount());
+	               return new Duplicate(action, f.getAmount(), f.getPeriodSec());
 	           }
 	           case REORDER: {
-	               return new Reorder(action,getAddresses(ip, ports), f.getAmount());
+	               return new Reorder(action, f.getAmount(), f.getPeriodSec());
 	           }
 	           case DELAY: {
-	               return new Delay(action,getAddresses(ip, ports), f.getAmount());
-	           }
-	           case LIMIT: {
-	               return new Limit(action,getAddresses(ip, ports), f.getAmount());
-	           }
-	           case FLOOD: {
-	               //final int port =ensureIntParameter("port", "port is unacceptably null", new Object[0]);
-	               return new Flood(action, ip,  1);
+	               return new Delay(action, f.getAmount(), f.getPeriodSec());
 	           }
 	           default: {
 	               throw new IllegalArgumentException("Unknown target " + target);
@@ -144,7 +95,7 @@ public class DiscoveryService {
 
 	   private boolean actionHandler(Failure f, final Injection injection) {
 		   final Faultinjection.InjectionAction cmd = Faultinjection.InjectionAction.valueOf(f.getCmd());
-	       LOG.info(String.format("AgenTestAction invoked with params host = %s, cmd = %s , injection = %s", f.getHost(), cmd, injection));
+	       LOG.info(String.format("AgentAction invoked with params host = %s, cmd = %s , injection = %s", f.getHost(), cmd, injection));
 	       final GrpcClientService client = sessions.getSessions().get(new InetSocketAddress(f.getHost(), f.getPort()));
 	       switch (cmd) {
 	           case START: {
@@ -181,38 +132,14 @@ public class DiscoveryService {
 	   }
 
 
-	   private Injection createInjection(Failure f, int pid) {
+	   private Injection createInjection(Failure f) {
 	       final Faultinjection.InjectionAction action = Faultinjection.InjectionAction.valueOf(f.getCmd());
-	       return this.createInjection(f, action, pid);
+	       return this.createInjection(f, action);
 	   }
 
-	   private Injection createInjection(Failure f, final Faultinjection.InjectionAction action, final int pid) {
+	   private Injection createInjection(Failure f, final Faultinjection.InjectionAction action) {
 	       final Faultinjection.InjectionType target = Faultinjection.InjectionType.valueOf(f.getType().toUpperCase());
 	       switch (target) {
-	           case BURNCPU: {
-	               return new BurnCPU(action, f.getAmount());
-	           }
-	           case SIGSTOP: {
-	               return new SigStop(action, pid);
-	           }
-	           case BURNIO: {
-	               return new BurnIO(action, f.getAmount(), f.getMountPoint());
-	           }
-	           case FILLDISK: {
-	               return new FillDisk(action, f.getAmount(), f.getMountPoint());
-	           }
-	           case CORRUPTHDFS: {
-	               return new CorruptHDFS(action, f.getSize(), f.getOffset());
-	           }
-	           case FILLMEM: {
-	               return new FillMem(action, f.getAmount());
-	           }
-	           case RONLY: {
-	               return new ReadOnly(action, f.getMountPoint());
-	           }
-	           case UNMOUNT: {
-	               return new UnMount(action, f.getMountPoint());
-	           }
 
 	           case DELETE: {
 	               return new Delete(action, f.getPath(), f.getPeriodSec());
@@ -221,42 +148,13 @@ public class DiscoveryService {
 	           case DOWN: {
 	               return new Down(action, f.getIface(), f.getPeriodSec());
 	           }
-
-	           case SUICIDE: {
-	               return new Suicide(action);
-	           }
-	           case BLACK: {
-	               return new Black(action);
-	           }
-	           case HANG: {
-	               return new Hang(action);
-	           }
-	           case PANIC: {
-	               return new Panic(action);
-	           }
-	           case DNSFAIL: {
-	               return new DnsFail(action);
-	           }
 	           case DROP:
-	           case REJECT1:
-	           case REJECT2:
 	           case LOSS:
 	           case CORRUPT:
 	           case DUPLICATE:
 	           case REORDER:
-	           case DELAY:
-	           case LIMIT:
-	           case FLOOD: {
-	                   return this.createInjection(f, target, action, pid);
-	           }
-	           case DDELAY: {
-	               return new DiskDelay(action, f.getPath(), f.getAccessMode(), f.getDelay(), f.getProbability());
-	           }
-	           case DCORRUPT: {
-	               return new DiskCorrupt(action, f.getPath(), f.getAccessMode(), f.getProbability(), f.getPercentage());
-	           }
-	           case DFAIL: {
-	               return new DiskFail(action, f.getPath(), f.getAccessMode(), f.getProbability(), f.getErrorCode());
+	           case DELAY: {
+	                   return this.createInjection(f, target, action);
 	           }
 	           default: {
 	               throw new IllegalArgumentException("Unknown target " + target);
@@ -265,20 +163,9 @@ public class DiscoveryService {
 	   }
 
 
-	   private int getPid(Failure f) {
-	       int pid;
-	       pid = name2pid(f);
-	       return pid;
-
-	   }
-
 	   public boolean doAction(final Failure f) throws InterruptedException {
-		   int pid = -1;
-		   if (f.getProcessName() != null){
-			   pid = getPid(f);
-		   }
 
-	       return actionHandler(f, createInjection(f,pid));
+	       return actionHandler(f, createInjection(f));
 	   }
 
 

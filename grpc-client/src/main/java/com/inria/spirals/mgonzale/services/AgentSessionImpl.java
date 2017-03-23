@@ -12,31 +12,31 @@ import java.util.concurrent.*;
 
 
 @Service
-public class DefaultAgenTestSession implements AgenTestSession
+public class AgentSessionImpl implements AgentSession
 {
-    private static final Logger LOG;
-    private static ConcurrentMap<InetSocketAddress, GrpcClientService> sessions;
+    private static final Logger LOG = LoggerFactory.getLogger(AgentSessionImpl.class);
+    private static ConcurrentMap<InetSocketAddress, GrpcClientService> sessions = new ConcurrentHashMap<InetSocketAddress, GrpcClientService>();
 
     @Autowired
     private DiscoveryService discover;
 
 
-    @Scheduled(fixedDelay=30000)    
+    @Scheduled(fixedDelay=30000)
     public void findServers(){
     	System.out.println("test-22222");
     	for(ServiceInstance instance : discover.getListofServers()){
     		instance.getMetadata().keySet().forEach(key -> System.out.println(key + "->" + instance.getMetadata().get(key)));
-    		
+
     		GrpcClientService client = get(instance.getHost(), 3000);
     	}
     }
 
     @Override
     public GrpcClientService get(final InetSocketAddress address) {
-    	GrpcClientService client = DefaultAgenTestSession.sessions.get(address);
+    	GrpcClientService client = sessions.get(address);
         if (client == null) {
-            DefaultAgenTestSession.LOG.info("Create new session {}", address);
-            final GrpcClientService prev = DefaultAgenTestSession.sessions.putIfAbsent(address, client = new GrpcClientService(address));
+            LOG.info("Create new session {}", address);
+            final GrpcClientService prev = sessions.putIfAbsent(address, client = new GrpcClientService(address));
             client = ((prev == null) ? client : prev);
         }
         return client;
@@ -49,17 +49,17 @@ public class DefaultAgenTestSession implements AgenTestSession
 
     @Override
     public void terminate() {
-        DefaultAgenTestSession.sessions.keySet().forEach(this::terminate);
+        sessions.keySet().forEach(this::terminate);
     }
 
     @Override
     public void terminate(final InetSocketAddress address) {
-        final GrpcClientService client = DefaultAgenTestSession.sessions.remove(address);
+        final GrpcClientService client = sessions.remove(address);
         if (client == null) {
-            DefaultAgenTestSession.LOG.info("No client at {}", address);
+            LOG.info("No client at {}", address);
             return;
         }
-        DefaultAgenTestSession.LOG.info("Terminating {}", client);
+        LOG.info("Terminating {}", client);
         client.shutdownServer();
     }
 
@@ -70,11 +70,5 @@ public class DefaultAgenTestSession implements AgenTestSession
     @Override
     public void terminate(final String host, final int port) {
         this.terminate(new InetSocketAddress(host, port));
-    }
-
-
-    static {
-        LOG = LoggerFactory.getLogger(DefaultAgenTestSession.class);
-        DefaultAgenTestSession.sessions = new ConcurrentHashMap<InetSocketAddress, GrpcClientService>();
     }
 }

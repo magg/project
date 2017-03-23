@@ -71,7 +71,7 @@ public class Delete extends Injection
     }
     
     private void checkArguments() {
-        ArgumentChecker.checkArgument(this.path != null, "Path value should not be null");
+    	Objects.requireNonNull(this.getPath(), "Target file/directory not defined.");
     }
     
 

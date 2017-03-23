@@ -2,7 +2,7 @@ package com.inria.spirals.mgonzale.services;
 
 import java.net.InetSocketAddress;
 
-public interface AgenTestSession
+public interface AgentSession
 {
     GrpcClientService get(final InetSocketAddress address);
     

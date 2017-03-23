@@ -2,9 +2,6 @@ package com.inria.spirals.mgonzale.model;
 
 import java.util.*;
 import com.inria.spirals.mgonzale.grpc.lib.*;
-
-import com.inria.spirals.mgonzale.grpc.lib.*;
-
 import com.inria.spirals.mgonzale.model.injections.*;
 
 
@@ -92,84 +89,20 @@ public abstract class Injection
     
     public static Injection create(final Faultinjection.Injection injection) {
         switch (injection.getName()) {
-            case BLACK: {
-                return new Black(injection);
-            }
-            case BURNCPU: {
-                return new BurnCPU(injection);
-            }
-            case BURNIO: {
-                return new BurnIO(injection);
-            }
-            case CORRUPT: {
-                return new Corrupt(injection);
-            }
-            case CORRUPTHDFS: {
-                return new CorruptHDFS(injection);
-            }
-            case DCORRUPT: {
-            		//return null;
-                return new DiskCorrupt(injection);
-            }
-            case DDELAY: {
-                return new DiskDelay(injection);
-            }
             case DELAY: {
-                return new DiskDelay(injection);
-            }
-            case DFAIL: {
-                return new DiskFail(injection);
-            }
-            case DNSFAIL: {
-                return new DnsFail(injection);
-            }
-            case DROP: {
-                return new Drop(injection);
+                return new Delay(injection);
             }
             case DUPLICATE: {
                 return new Duplicate(injection);
             }
-            case FILLDISK: {
-                return new FillDisk(injection);
-            }
-            case FILLMEM: {
-                return new FillMem(injection);
-            }
-            case FLOOD: {
-                return new Flood(injection);
-            }
-            case HANG: {
-                return new Hang(injection);
-            }
-            case LIMIT: {
-                return new Limit(injection);
+            case CORRUPT: {
+                return new Corrupt(injection);
             }
             case LOSS: {
                 return new Loss(injection);
             }
-            case PANIC: {
-                return new Panic(injection);
-            }
-            case REJECT1: {
-                return new Reject1(injection);
-            }
-            case REJECT2: {
-                return new Reject2(injection);
-            }
             case REORDER: {
                 return new Reorder(injection);
-            }
-            case RONLY: {
-                return new ReadOnly(injection);
-            }
-            case SIGSTOP: {
-                return new SigStop(injection);
-            }
-            case SUICIDE: {
-                return new Suicide(injection);
-            }
-            case UNMOUNT: {
-                return new UnMount(injection);
             }
             case DELETE: {
                 return new Delete(injection);
